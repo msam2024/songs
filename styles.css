@@ -114,10 +114,44 @@ input[type="text"], textarea{
   cursor:pointer;
 }
 
-#keyboard .kb{
+/* Floating keyboard styles */
+.kb-floating{
+  position:fixed;
+  z-index:9999;
+  min-width:320px;
+  max-width:90%;
+  background:var(--card);
+  border-radius:10px;
+  box-shadow:0 10px 30px rgba(10,10,40,0.15);
+  padding:10px;
+  transition:opacity .15s ease, transform .15s ease;
+  opacity:1;
+  /* default position - bottom center when pinned; unpinned will get inline top/left styles */
+}
+.kb-floating.hidden{display:none}
+.kb-header{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  justify-content:space-between;
+  padding:6px 8px;
+  cursor:move;
+  user-select:none;
+  border-bottom:1px solid #f0f0f5;
+  margin-bottom:8px;
+}
+.kb-header strong{font-size:0.95rem}
+.kb-controls button{
+  border:0;
+  background:transparent;
+  cursor:pointer;
+  font-size:1rem;
+}
+.kb{
   display:flex;
   flex-wrap:wrap;
   gap:8px;
+  padding:6px 2px;
 }
 .kb button{
   padding:8px 10px;
@@ -128,7 +162,17 @@ input[type="text"], textarea{
   min-width:36px;
   font-size:1rem;
 }
-.kb-actions{margin-top:8px;display:flex;gap:8px}
+.kb-actions{margin-top:8px;display:flex;gap:8px;justify-content:flex-start}
 .kb-note{margin-top:8px;color:var(--muted);font-size:0.9rem}
 
-footer{text-align:center;padding:14px;color:var(--muted)}
+.kb-floating.pinned{
+  left:50%;
+  transform:translateX(-50%);
+  bottom:12px;
+  top:auto !important;
+}
+
+/* make sure it looks okay on small screens */
+@media (max-width:420px){
+  .kb-floating{min-width:260px}
+}
