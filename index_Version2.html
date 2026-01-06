@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>کتابخانهٔ اشعار (فارسی)</title>
+  <!-- فونت فارسی پیشنهادی (Vazirmatn) -->
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>کتابخانهٔ اشعار</h1>
+    <p class="subtitle">فهرست خوانندگان و اشعارشان — با کیبورد فارسی مجازی</p>
+  </header>
+
+  <main>
+    <section class="controls">
+      <input id="search" type="search" placeholder="جستجو: نام خواننده یا عنوان آهنگ..." aria-label="جستجو">
+      <button id="toggle-add">افزودن شعر جدید</button>
+      <button id="toggle-kb" title="نمایش/پنهان کیبورد فارسی">نمایش/پنهان کیبورد فارسی</button>
+    </section>
+
+    <section id="add-form" class="card hidden" aria-hidden="true">
+      <h2>افزودن شعر جدید</h2>
+      <label>نام خواننده
+        <input id="new-singer" type="text" placeholder="مثلاً: علی رضایی">
+      </label>
+      <label>عنوان آهنگ
+        <input id="new-title" type="text" placeholder="مثلاً: غروب">
+      </label>
+      <label>متن شعر
+        <textarea id="new-lyrics" rows="8" placeholder="متن شعر را وارد کنید یا بچسبانید (Paste)."></textarea>
+      </label>
+      <div class="form-actions">
+        <button id="save-lyric">ذخیره</button>
+        <button id="cancel-add">انصراف</button>
+      </div>
+    </section>
+
+    <section id="list" class="card">
+      <!-- فهرست خوانندگان و آهنگ‌ها اینجا رندر می‌شود -->
+    </section>
+
+    <!-- Floating keyboard (initially hidden). It will appear near focused input or can be pinned to bottom. -->
+    <div id="keyboard" class="kb-floating hidden" aria-hidden="true" role="dialog" aria-label="کیبورد فارسی">
+      <div class="kb-header" id="kb-header">
+        <strong>کیبورد فارسی</strong>
+        <div class="kb-controls">
+          <button id="kb-pin" title="پین/آن‌پین">📌</button>
+          <button id="kb-close" title="بستن">✖</button>
+        </div>
+      </div>
+      <div id="kb-keys" class="kb"></div>
+      <div class="kb-actions">
+        <button id="kb-space">فاصله</button>
+        <button id="kb-back">حذف</button>
+        <button id="kb-clear">پاک کردن</button>
+      </div>
+      <p class="kb-note">برای تایپ، روی حروف کلیک کنید. همچنین می‌توانید متن را از کلیپ‌بورد بچسبانید (Ctrl+V / ⌘+V).</p>
+    </div>
+  </main>
+
+  <footer>
+    <small>ایجاد شده برای نمونه — می‌توانید آن را توسعه دهید یا به گیت‌هاب پوش کنید.</small>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
