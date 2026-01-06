@@ -42,7 +42,7 @@ function renderList(filter=''){
   const normalized = s => (s||'').toLowerCase();
 
   db.forEach(singer => {
-    // فیلتر: نام خواننده یا عنوان آهنگ
+    // فیلتر: نام خواننده یا عنوان آهنگ یا متن
     const singerMatch = normalized(singer.name).includes(normalized(q));
     const songsFiltered = singer.songs.filter(song =>
       normalized(song.title).includes(normalized(q)) || normalized(song.lyrics).includes(normalized(q))
@@ -136,11 +136,14 @@ const kbKeysContainer = document.getElementById('kb-keys');
 const kbSpace = document.getElementById('kb-space');
 const kbBack = document.getElementById('kb-back');
 const kbClear = document.getElementById('kb-clear');
+const kbHeader = document.getElementById('kb-header');
+const kbPinBtn = document.getElementById('kb-pin');
+const kbCloseBtn = document.getElementById('kb-close');
 
-toggleKbBtn.addEventListener('click', ()=>{
-  const hidden = kbSection.classList.toggle('hidden');
-  kbSection.setAttribute('aria-hidden', hidden.toString());
-});
+let pinned = false;
+let dragging = false;
+let dragOffset = {x:0,y:0};
+let currentFocused = null; // the element keyboard is targeting
 
 // حروف فارسی (ردیف‌بندی ساده)
 const kbRows = [
@@ -155,7 +158,7 @@ function createKB(){
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.textContent = ch;
-      btn.addEventListener('click', ()=> insertToActiveTextarea(ch));
+      btn.addEventListener('click', ()=> insertToTarget(ch));
       kbKeysContainer.appendChild(btn);
     });
     // خط جدید
@@ -166,57 +169,208 @@ function createKB(){
 }
 createKB();
 
-kbSpace.addEventListener('click', ()=> insertToActiveTextarea(' '));
+// Show/hide & position helpers
+function showKeyboardFor(target){
+  if(!target) return;
+  currentFocused = target;
+  kbSection.classList.remove('hidden');
+  kbSection.setAttribute('aria-hidden', 'false');
+
+  // if pinned, dock bottom-center
+  if(pinned){
+    kbSection.classList.add('pinned');
+    kbSection.style.left = '';
+    kbSection.style.top = '';
+    kbSection.style.transform = 'translateX(-50%)';
+    return;
+  } else {
+    kbSection.classList.remove('pinned');
+  }
+
+  // place keyboard relative to target (prefer above target)
+  positionKeyboardNear(target);
+}
+
+function positionKeyboardNear(target){
+  // temporarily make visible to measure
+  kbSection.style.left = '-9999px';
+  kbSection.style.top = '-9999px';
+  kbSection.style.transform = '';
+  // force layout
+  const kbRect = kbSection.getBoundingClientRect();
+  const rect = target.getBoundingClientRect();
+  const gap = 8;
+  // prefer above
+  const topAbove = rect.top - kbRect.height - gap;
+  const topBelow = rect.bottom + gap;
+  let top = topAbove > 8 ? topAbove : topBelow;
+  // center relative to target
+  let left = rect.left + (rect.width - kbRect.width) / 2;
+  // keep inside viewport horizontally
+  left = Math.max(8, Math.min(left, window.innerWidth - kbRect.width - 8));
+  // ensure top inside viewport vertically
+  top = Math.max(8, Math.min(top, window.innerHeight - kbRect.height - 8));
+  kbSection.style.left = `${left}px`;
+  kbSection.style.top = `${top}px`;
+}
+
+function hideKeyboard(){
+  kbSection.classList.add('hidden');
+  kbSection.setAttribute('aria-hidden', 'true');
+  currentFocused = null;
+}
+
+// toggle button opens keyboard next to current active element (or lyrics textarea)
+toggleKbBtn.addEventListener('click', ()=>{
+  if(kbSection.classList.contains('hidden')){
+    const active = document.activeElement;
+    const target = (active && (isEditable(active))) ? active : newLyrics;
+    showKeyboardFor(target);
+    target && target.focus();
+  } else {
+    hideKeyboard();
+  }
+});
+
+kbCloseBtn.addEventListener('click', ()=> hideKeyboard());
+
+kbPinBtn.addEventListener('click', ()=>{
+  pinned = !pinned;
+  if(pinned){
+    kbSection.classList.add('pinned');
+    kbSection.style.left = '';
+    kbSection.style.top = '';
+    kbSection.style.transform = 'translateX(-50%)';
+  } else {
+    kbSection.classList.remove('pinned');
+    if(currentFocused) positionKeyboardNear(currentFocused);
+  }
+});
+
+// Dragging support (mouse / pointer)
+kbHeader.addEventListener('pointerdown', (e)=>{
+  // only left button
+  if(e.button && e.button !== 0) return;
+  kbHeader.setPointerCapture(e.pointerId);
+  dragging = true;
+  if(pinned){
+    pinned = false;
+    kbSection.classList.remove('pinned');
+  }
+  const rect = kbSection.getBoundingClientRect();
+  dragOffset.x = e.clientX - rect.left;
+  dragOffset.y = e.clientY - rect.top;
+  document.addEventListener('pointermove', onDrag);
+  document.addEventListener('pointerup', endDrag, {once:true});
+  e.preventDefault();
+});
+
+function onDrag(e){
+  if(!dragging) return;
+  let left = e.clientX - dragOffset.x;
+  let top = e.clientY - dragOffset.y;
+  const kbRect = kbSection.getBoundingClientRect();
+  left = Math.max(8, Math.min(left, window.innerWidth - kbRect.width - 8));
+  top = Math.max(8, Math.min(top, window.innerHeight - kbRect.height - 8));
+  kbSection.style.left = left + 'px';
+  kbSection.style.top = top + 'px';
+  kbSection.style.transform = '';
+}
+
+function endDrag(e){
+  dragging = false;
+  document.removeEventListener('pointermove', onDrag);
+}
+
+// Keyboard actions
+kbSpace.addEventListener('click', ()=> insertToTarget(' '));
 kbBack.addEventListener('click', ()=>{
-  const ta = document.activeElement;
-  if(ta && ta.tagName === 'TEXTAREA'){
-    const start = ta.selectionStart;
-    const end = ta.selectionEnd;
+  const el = currentFocused && isEditable(currentFocused) ? currentFocused : document.activeElement;
+  if(el && isEditable(el)){
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
     if(start === end && start>0){
-      ta.value = ta.value.slice(0, start-1) + ta.value.slice(end);
-      ta.selectionStart = ta.selectionEnd = start-1;
+      el.value = el.value.slice(0, start-1) + el.value.slice(end);
+      el.selectionStart = el.selectionEnd = start-1;
     }else{
-      ta.value = ta.value.slice(0, start) + ta.value.slice(end);
-      ta.selectionStart = ta.selectionEnd = start;
+      el.value = el.value.slice(0, start) + el.value.slice(end);
+      el.selectionStart = el.selectionEnd = start;
     }
-    ta.focus();
+    el.focus();
   }
 });
 kbClear.addEventListener('click', ()=>{
-  const ta = document.activeElement;
-  if(ta && ta.tagName === 'TEXTAREA'){
-    ta.value = '';
-    ta.focus();
+  const el = currentFocused && isEditable(currentFocused) ? currentFocused : document.activeElement;
+  if(el && isEditable(el)){
+    el.value = '';
+    el.focus();
   }
 });
 
-// درج متن در textarea فعال (یا فیلد متنی)
-function insertToActiveTextarea(text){
-  const el = document.activeElement;
-  if(!el) return;
-  if(el.tagName === 'TEXTAREA' || (el.tagName === 'INPUT' && el.type === 'text')){
-    const start = el.selectionStart || 0;
-    const end = el.selectionEnd || 0;
-    const before = el.value.slice(0, start);
-    const after = el.value.slice(end);
-    el.value = before + text + after;
-    const pos = start + text.length;
-    el.selectionStart = el.selectionEnd = pos;
-    el.focus();
-    // اگر textarea مربوط به اضافه کردن شعر است، نگران نبودن در نگهداری داده نیستیم (هنگام ذخیره، مقدار خوانده می‌شود).
-  } else {
-    // اگر هیچ textarea ای فعال نیست، تمرکز روی textarea متن جدید می‌گذاریم
+// Insert the character into the target (currentFocused has priority)
+function insertToTarget(text){
+  const el = (currentFocused && isEditable(currentFocused)) ? currentFocused : (document.activeElement && isEditable(document.activeElement) ? document.activeElement : null);
+  if(!el){
+    // fallback to lyrics textarea
     newLyrics.focus();
-    insertToActiveTextarea(text);
+    insertToTarget(text);
+    return;
   }
+  const start = el.selectionStart || 0;
+  const end = el.selectionEnd || 0;
+  const before = el.value.slice(0, start);
+  const after = el.value.slice(end);
+  el.value = before + text + after;
+  const pos = start + text.length;
+  el.selectionStart = el.selectionEnd = pos;
+  el.focus();
 }
 
-// پشتیبانی از Paste: فقط اجازه می‌دهیم متن وارد شود (پیش‌فرض مرورگر کافی است)
-// اما برای اطمینان، یک هندلر برای textarea اضافه می‌کنیم تا کاراکترها را نگه دارد
-[newLyrics].forEach(ta=>{
-  ta.addEventListener('paste', (e)=>{
-    // اجازهٔ پیش‌فرض (paste) داده می‌شود؛ می‌توان در اینجا نرمال‌سازی هم انجام داد.
-    setTimeout(()=>{/* بعد از paste می‌توان کاری انجام داد اگر لازم بود */}, 0);
+// utility: which elements are considered editable for our keyboard
+function isEditable(el){
+  return el && ((el.tagName === 'TEXTAREA') || (el.tagName === 'INPUT' && (el.type === 'text' || el.type === 'search')));
+}
+
+// When user focuses inputs/textareas, show keyboard near that input (including search)
+document.addEventListener('focusin', (e)=>{
+  const t = e.target;
+  if(isEditable(t)){
+    // Show keyboard near this field
+    // small delay allows layout to settle (useful on mobile/virtual keyboard)
+    setTimeout(()=>{
+      showKeyboardFor(t);
+    }, 0);
+  }
+});
+
+// If user clicks/taps outside inputs and outside keyboard, hide keyboard (unless pinned)
+document.addEventListener('pointerdown', (e)=>{
+  if(pinned) return;
+  const target = e.target;
+  if(kbSection.contains(target)) return;
+  if(isEditable(target)) return;
+  hideKeyboard();
+});
+
+// keep keyboard positioned with scroll/resize while it's open and not pinned
+let repositionScheduled = false;
+function scheduleReposition(){
+  if(!currentFocused || pinned) return;
+  if(repositionScheduled) return;
+  repositionScheduled = true;
+  requestAnimationFrame(()=>{
+    try { positionKeyboardNear(currentFocused); } catch(e){}
+    repositionScheduled = false;
+  });
+}
+window.addEventListener('scroll', scheduleReposition, true);
+window.addEventListener('resize', scheduleReposition);
+
+// Paste support (unchanged) — allow paste into textarea
+[newLyrics, searchEl, newSinger, newTitle].forEach(ta=>{
+  ta && ta.addEventListener('paste', (e)=>{
+    // default paste is OK; place caret after paste if needed
+    setTimeout(()=>{/* after paste hook (if required) */}, 0);
   });
 });
 
