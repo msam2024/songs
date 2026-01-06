@@ -1,0 +1,134 @@
+:root{
+  --bg:#f7f7fb;
+  --card:#ffffff;
+  --accent:#2b6cb0;
+  --muted:#666;
+  --radius:10px;
+  --gap:12px;
+  font-family: 'Vazirmatn', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  background:var(--bg);
+  color:#111;
+  direction:rtl;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+header{
+  padding:28px 20px 8px;
+  text-align:center;
+}
+header h1{margin:0;font-size:1.8rem}
+.subtitle{margin:6px 0 0;color:var(--muted)}
+
+main{
+  max-width:980px;
+  margin:18px auto;
+  padding:0 16px 40px;
+}
+
+.controls{
+  display:flex;
+  gap:var(--gap);
+  align-items:center;
+  margin-bottom:12px;
+  flex-wrap:wrap;
+}
+.controls input[type="search"]{
+  flex:1 1 420px;
+  padding:10px 12px;
+  border-radius:8px;
+  border:1px solid #ddd;
+  font-size:1rem;
+}
+.controls button{
+  background:var(--accent);
+  color:white;
+  border:none;
+  padding:10px 14px;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:600;
+}
+
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:14px;
+  box-shadow:0 6px 18px rgba(20,20,40,0.06);
+  margin-bottom:12px;
+}
+
+.hidden{display:none}
+
+#list .singer{
+  border-bottom:1px dashed #eee;
+  padding:10px 0;
+}
+.singer:last-child{border-bottom:0}
+.singer h3{margin:0 0 6px;font-size:1.1rem}
+.song{
+  margin:6px 0;
+  padding:8px;
+  background:#fbfcff;
+  border-radius:8px;
+}
+.song .title{font-weight:600}
+.song pre{
+  white-space:pre-wrap;
+  margin:8px 0 0;
+  font-family:inherit;
+  line-height:1.6;
+  color:#222;
+}
+
+label{display:block;margin:8px 0;font-size:0.95rem}
+input[type="text"], textarea{
+  width:100%;
+  padding:10px;
+  border-radius:8px;
+  border:1px solid #ddd;
+  margin-top:6px;
+  font-size:1rem;
+  direction:rtl;
+  text-align:right;
+}
+
+.form-actions{
+  display:flex;
+  gap:10px;
+  justify-content:flex-start;
+  margin-top:10px;
+}
+.form-actions button{
+  background:var(--accent);
+  color:white;
+  border:none;
+  padding:10px 14px;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+#keyboard .kb{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.kb button{
+  padding:8px 10px;
+  border-radius:6px;
+  border:1px solid #ddd;
+  background:#fff;
+  cursor:pointer;
+  min-width:36px;
+  font-size:1rem;
+}
+.kb-actions{margin-top:8px;display:flex;gap:8px}
+.kb-note{margin-top:8px;color:var(--muted);font-size:0.9rem}
+
+footer{text-align:center;padding:14px;color:var(--muted)}
