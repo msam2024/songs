@@ -18,7 +18,7 @@
     <section class="controls">
       <input id="search" type="search" placeholder="جستجو: نام خواننده یا عنوان آهنگ..." aria-label="جستجو">
       <button id="toggle-add">افزودن شعر جدید</button>
-      <button id="toggle-kb">نمایش/پنهان کیبورد فارسی</button>
+      <button id="toggle-kb" title="نمایش/پنهان کیبورد فارسی">نمایش/پنهان کیبورد فارسی</button>
     </section>
 
     <section id="add-form" class="card hidden" aria-hidden="true">
@@ -42,8 +42,15 @@
       <!-- فهرست خوانندگان و آهنگ‌ها اینجا رندر می‌شود -->
     </section>
 
-    <section id="keyboard" class="card hidden" aria-hidden="true">
-      <h2>کیبورد فارسی</h2>
+    <!-- Floating keyboard (initially hidden). It will appear near focused input or can be pinned to bottom. -->
+    <div id="keyboard" class="kb-floating hidden" aria-hidden="true" role="dialog" aria-label="کیبورد فارسی">
+      <div class="kb-header" id="kb-header">
+        <strong>کیبورد فارسی</strong>
+        <div class="kb-controls">
+          <button id="kb-pin" title="پین/آن‌پین">📌</button>
+          <button id="kb-close" title="بستن">✖</button>
+        </div>
+      </div>
       <div id="kb-keys" class="kb"></div>
       <div class="kb-actions">
         <button id="kb-space">فاصله</button>
@@ -51,7 +58,7 @@
         <button id="kb-clear">پاک کردن</button>
       </div>
       <p class="kb-note">برای تایپ، روی حروف کلیک کنید. همچنین می‌توانید متن را از کلیپ‌بورد بچسبانید (Ctrl+V / ⌘+V).</p>
-    </section>
+    </div>
   </main>
 
   <footer>
